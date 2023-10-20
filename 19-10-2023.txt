@@ -1,0 +1,18 @@
+*&---------------------------------------------------------------------*
+*& Report ZGANGA_DB_VIEW
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT ZGANGA_DB_VIEW.
+
+DATA :
+      it_marc TYPE STANDARD TABLE OF ZGANGA_DB_VIEW,
+      wa_marc LIKE LINE OF it_marc.
+
+SELECT-OPTIONS s_matnr FOR wa_marc-matnr.
+
+SELECT * FROM ZGANGA_DB_VIEW into TABLE it_marc where matnr IN s_matnr.
+
+LOOP AT it_marc INTO wa_marc.
+  WRITE : /30 wa_marc-matnr, 40 wa_marc-werks,50 wa_marc-name1.
+  ENDLOOP.

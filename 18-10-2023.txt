@@ -1,0 +1,212 @@
+*&---------------------------------------------------------------------*
+*& Report ZGANGA_INTEREST
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT ZGANGA_INTEREST.
+
+
+
+
+
+*PARAMETERS: p_init TYPE p DECIMALS 2,
+*            p_profit TYPE p DECIMALS 2,
+*            p_days TYPE i,
+*            p_compnd TYPE c AS CHECKBOX.
+*
+*DATA: v_simple TYPE p DECIMALS 2,
+*      v_compound TYPE p DECIMALS 2.
+*
+*DATA: v_total TYPE p DECIMALS 2,
+*      v_profitamt TYPE p DECIMALS 2.
+*
+*DATA: v_count TYPE i VALUE 1.
+*
+*START-OF-SELECTION.
+*
+*v_total = p_init.
+*v_profitamt = p_init * p_profit / 100.
+*
+*IF p_init IS INITIAL OR p_profit IS INITIAL OR p_days IS INITIAL.
+*  WRITE: 'Please enter valid input for all fields.'.
+*ELSEIF p_profit <= 0 OR p_days <= 0.
+*  WRITE: 'Profit percentage and number of days must be greater than zero.'.
+*ELSE.
+*  WRITE: / 'Initial Amount:', p_init,
+*          / 'Total Days:', p_days.
+*
+*  IF p_compnd = 'X'.
+*    WRITE: / 'Calculating Compound Interest'.
+*  ELSE.
+*    WRITE: / 'Calculating Simple Interest'.
+*  ENDIF.
+*
+*  WRITE: / 'Day', 8 'Total Amount', 30 'Interest'.
+*
+*  DO p_days TIMES.
+*    IF p_compnd = 'X'.
+*      IF v_count MOD 5 = 0.
+*        v_profitamt = v_total * p_profit / 100.
+*        v_total = v_total + v_profitamt.
+*      ELSE.
+*        v_compound = v_total * p_profit / 100.
+*        v_total = v_total + v_compound.
+*      ENDIF.
+*    ELSE.
+*      v_simple = v_total * p_profit / 100.
+*      v_total = v_total + v_simple.
+*    ENDIF.
+*
+*    WRITE: / v_count, 8 v_total, 30 v_profitamt.
+*    ADD 1 TO v_count.
+*  ENDDO.
+*ENDIF.
+
+
+
+
+PARAMETERS : p_iamt TYPE p DECIMALS 2,
+             p_pper TYPE p DECIMALS 2,
+             p_days TYPE i,
+             p_che AS CHECKBOX.
+DATA :   fin_amt TYPE p DECIMALS 2,
+          profit TYPE p DECIMALS 2.
+
+ IF p_che EQ 'X'.
+ profit = p_iamt * ( p_pper / 100 ) * ( p_days / 365 ) .
+      fin_amt = p_iamt + profit.
+
+
+    ELSE.
+      fin_amt = p_iamt.
+     DO p_days TIMES.
+    profit = fin_amt * p_pper / 100.
+    fin_amt = fin_amt + profit.
+    ENDDO.
+      ENDIF.
+
+      WRITE :  'Initial Amount:',p_iamt,/
+               'Total Days:',p_days,/
+               'Total Amount:',fin_amt.
+
+
+REPORT zganga_sales_range.
+
+TYPES: BEGIN  OF ty_vbap,
+         vbeln  TYPE vbap-vbeln,
+         posnr  TYPE vbap-posnr,
+         pstyv  TYPE vbap-pstyv,
+         arktx  TYPE vbap-arktx,
+         kwmeng TYPE vbap-kwmeng,
+         zieme  TYPE vbap-zieme,
+         netwr  TYPE vbap-netwr,
+
+       END  OF ty_vbap.
+
+TYPES :BEGIN OF ty_vbak,
+         vbeln TYPE vbak-vbeln,
+         audat TYPE vbak-audat,
+         netwr TYPE vbak-netwr,
+         kunnr TYPE vbak-kunnr,
+       END OF ty_vbak.
+
+TYPES : BEGIN OF ty_t006a,
+          msehi TYPE t006a-msehi,
+          msehl TYPE t006a-msehl,
+        END OF ty_t006a.
+
+TYPES : BEGIN OF ty_kna1 ,
+          kunnr TYPE kna1-kunnr,
+          name1 TYPE kna1-name1,
+        END OF ty_kna1.
+
+DATA : it_vbap       TYPE TABLE OF ty_vbap,
+       wa_vbap       LIKE LINE OF it_vbap,
+
+       it_vbak       TYPE TABLE OF ty_vbak,
+       wa_vbak       LIKE LINE OF it_vbak,
+
+       it_t006a      TYPE TABLE OF ty_t006a,
+       wa_t006a      LIKE LINE OF it_t006a,
+
+       it_kna1       TYPE TABLE OF ty_kna1,
+       wa_kna1       LIKE LINE OF it_kna1,
+
+       prevbeln      TYPE vbap-vbeln,
+
+       sum_net_value TYPE vbap-netwr,
+       sum_order_qty TYPE vbap-kwmeng.
+
+
+
+SELECT-OPTIONS s_num FOR wa_vbak-vbeln.
+
+
+SELECT  vbeln audat netwr kunnr FROM vbak INTO TABLE it_vbak WHERE vbeln IN s_num.
+SELECT  kunnr name1 FROM kna1 INTO TABLE it_kna1 FOR ALL ENTRIES IN it_vbak WHERE kunnr EQ it_vbak-kunnr.
+SELECT  vbeln posnr pstyv arktx kwmeng zieme netwr FROM vbap INTO TABLE it_vbap WHERE vbeln IN s_num.
+SELECT msehi msehl FROM t006a INTO TABLE it_t006a FOR ALL ENTRIES IN it_vbap WHERE spras EQ sy-langu AND msehi EQ it_vbap-zieme.
+
+LOOP AT it_vbap INTO wa_vbap.
+*  IF wa_vbap-vbeln NE prevbeln.
+*    CLEAR : sum_net_value,sum_order_qty.
+
+  AT NEW vbeln.
+    READ TABLE it_vbak INTO wa_vbak WITH  KEY vbeln = wa_vbap-vbeln.
+    READ TABLE it_kna1 INTO wa_kna1 WITH KEY kunnr = wa_vbak-kunnr.
+
+    sum_net_value = wa_vbap-netwr.
+    sum_order_qty = wa_vbap-kwmeng.
+
+    WRITE :/ 'Document Number:',wa_vbak-vbeln,/
+    'Doc Date:',wa_vbak-audat,/
+    'Net Val:',wa_vbak-netwr,/
+    'Sold To Party:',wa_kna1-name1.
+
+    WRITE :/ 'Item',
+       20 'Material',
+       35 'ItemDesc',
+       60 'Order Qty' ,
+       80 'UoM',
+       100'NetVal'.
+
+
+
+*  ENDIF.
+ENDAT.
+
+
+
+
+
+
+  READ TABLE it_t006a INTO wa_t006a WITH KEY msehi = wa_vbap-zieme.
+
+
+
+
+
+
+  WRITE : / wa_vbap-posnr,
+           20 wa_vbap-pstyv,
+           35  wa_vbap-arktx,
+           50 wa_vbap-kwmeng,
+           80 wa_t006a-msehl,
+           90 wa_vbap-netwr.
+
+
+
+*  sum_net_value = wa_vbap-netwr + sum_net_value.
+*  sum_order_qty = wa_vbap-kwmeng + sum_order_qty.
+
+*  IF wa_vbap-vbeln EQ prevbeln.
+*    WRITE : / 'Total Order Quantity:', sum_order_qty.
+*    WRITE : / 'Total Net Value:', sum_net_value.
+*  ENDIF.
+  AT END OF vbeln.
+    SUM.
+    WRITE : /50 wa_vbap-kwmeng,
+            wa_vbap-netwr.
+  prevbeln = wa_vbap-vbeln.
+ENDLOOP.
+
