@@ -1,0 +1,38 @@
+*&---------------------------------------------------------------------*
+*& Report ZGANGA_PROCESSING_BLOCKS
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT ZGANGA_PROCESSING_BLOCKS.
+DATA v_maktx TYPE maktx.
+PARAMETERS p_matnr TYPE matnr DEFAULT 'MN100'.
+PARAMETERS p_date TYPE sy-datum.
+PARAMETERS p_setl AS CHECKBOX.
+
+
+.
+*  p_date = sy-datum.
+START-OF-SELECTION.
+
+ DATA v_name TYPE c LENGTH 10.
+  SELECT SINGLE maktx FROM makt INTO v_maktx WHERE matnr EQ p_matnr.
+  PERFORM show_output.
+AT LINE-SELECTION.
+  WRITE 'Secondary List'.
+  CALL SELECTION-SCREEN 1000.
+FORM show_output.
+
+  v_name = 'Ganga'.
+  WRITE  v_name.
+ENDFORM.
+FORM display.
+    v_name = 'GangaKN'.
+ENDFORM.
+AT SELECTION-SCREEN OUTPUT.
+  p_date = sy-datum.
+  LOOP AT SCREEN.
+    IF screen-name = 'P_SETL'.
+     " screen-input = 0.
+    "  MODIFY SCREEN.
+    ENDIF.
+  ENDLOOP.

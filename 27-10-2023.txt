@@ -1,0 +1,45 @@
+FUNCTION ZGANGA_FM1.
+*"----------------------------------------------------------------------
+*"*"Local Interface:
+*"  IMPORTING
+*"     REFERENCE(IM_MATNR) TYPE  MAKT-MATNR
+*"  EXPORTING
+*"     REFERENCE(EX_MAKT) TYPE  MAKT
+*"  EXCEPTIONS
+*"      INVALID_MATERIAL
+*"----------------------------------------------------------------------
+SELECT SINGLE * from makt INTO ex_makt where matnr EQ im_matnr.
+  if sy-subrc is not initial.
+    raise INVALID_MATERIAL.
+ ENDIF.
+ENDFUNCTION.
+
+*&---------------------------------------------------------------------*
+*& Report ZGANGA_FM1_CALL
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT ZGANGA_FM1_CALL.
+
+DATA st_makt TYPE makt.
+PARAMETERS p_matnr TYPE makt-matnr.
+CALL FUNCTION 'ZGANGA_FM1'
+  EXPORTING
+    im_matnr               = p_matnr
+ IMPORTING
+   EX_MAKT                = st_makt
+ EXCEPTIONS
+   INVALID_MATERIAL       = 1
+   OTHERS                 = 2
+          .
+IF sy-subrc <> 0.
+* Implement suitable error handling here
+  CASE sy-subrc.
+    WHEN 1.
+      MESSAGE 'INVALID MATERIAL' TYPE 'E'.
+    WHEN OTHERS.
+  ENDCASE.
+ENDIF.
+WRITE : st_makt-matnr,
+         st_makt-spras,
+         st_makt-maktx.
