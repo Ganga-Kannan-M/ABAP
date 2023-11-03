@@ -1,0 +1,369 @@
+FILE UPLOAD
+*&---------------------------------------------------------------------*
+*& Report ZGANGA_FILE_UPLOAD
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT ZGANGA_FILE_UPLOAD.
+
+TYPES : BEGIN OF ty_file,
+      name TYPE c LENGTH 20,
+      dept TYPE c LENGTH 20,
+      emp_id TYPE c LENGTH 10,
+    END OF ty_file.
+
+ DATA : it_file TYPE STANDARD TABLE OF ty_file,
+       wa_file LIKE LINE OF it_file.
+
+PARAMETERS p_file TYPE string.
+
+ CALL FUNCTION 'GUI_UPLOAD'
+   EXPORTING
+     filename                      = p_file
+    FILETYPE                      = 'ASC'
+    HAS_FIELD_SEPARATOR           = 'X'
+*    HEADER_LENGTH                 = 0
+*    READ_BY_LINE                  = 'X'
+*    DAT_MODE                      = ' '
+*    CODEPAGE                      = ' '
+*    IGNORE_CERR                   = ABAP_TRUE
+*    REPLACEMENT                   = '#'
+*    CHECK_BOM                     = ' '
+*    VIRUS_SCAN_PROFILE            =
+*    NO_AUTH_CHECK                 = ' '
+*  IMPORTING
+*    FILELENGTH                    =
+*    HEADER                        =
+   tables
+     data_tab                      = it_file
+*  CHANGING
+*    ISSCANPERFORMED               = ' '
+  EXCEPTIONS
+    FILE_OPEN_ERROR               = 1
+    FILE_READ_ERROR               = 2
+    NO_BATCH                      = 3
+    GUI_REFUSE_FILETRANSFER       = 4
+    INVALID_TYPE                  = 5
+    NO_AUTHORITY                  = 6
+    UNKNOWN_ERROR                 = 7
+    BAD_DATA_FORMAT               = 8
+    HEADER_NOT_ALLOWED            = 9
+    SEPARATOR_NOT_ALLOWED         = 10
+    HEADER_TOO_LONG               = 11
+    UNKNOWN_DP_ERROR              = 12
+    ACCESS_DENIED                 = 13
+    DP_OUT_OF_MEMORY              = 14
+    DISK_FULL                     = 15
+    DP_TIMEOUT                    = 16
+    OTHERS                        = 17
+           .
+ IF sy-subrc <> 0.
+* Implement suitable error handling here
+ ENDIF.
+
+
+ LOOP AT it_file INTO wa_file.
+   WRITE : / wa_file-name,
+            wa_file-dept,
+            wa_file-emp_id.
+  ENDLOOP.
+
+FILE UPLOAD 2
+*&---------------------------------------------------------------------*
+*& Report ZGANGA_FILE_UPLOAD2
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT ZGANGA_FILE_UPLOAD2.
+
+
+TYPES : BEGIN OF ty_file,
+      name TYPE c LENGTH 20,
+      dept TYPE c LENGTH 20,
+      emp_id TYPE c LENGTH 10,
+    END OF ty_file.
+
+ DATA : it_file TYPE STANDARD TABLE OF ty_file,
+       wa_file LIKE LINE OF it_file.
+
+PARAMETERS p_file TYPE IBIPPARMS-PATH.
+
+AT SELECTION-SCREEN ON VALUE-REQUEST FOR p_file.
+  CALL FUNCTION 'F4_FILENAME'
+   EXPORTING
+     PROGRAM_NAME        = SYST-CPROG
+     DYNPRO_NUMBER       = SYST-DYNNR
+     FIELD_NAME          = 'p_file'
+   IMPORTING
+     FILE_NAME           = p_file
+
+          .
+  START-OF-SELECTION.
+  DATA v_file TYPE string.
+  v_file = p_file.
+
+
+ CALL FUNCTION 'GUI_UPLOAD'
+   EXPORTING
+     filename                      = v_file
+    FILETYPE                      = 'ASC'
+    HAS_FIELD_SEPARATOR           = 'X'
+*    HEADER_LENGTH                 = 0
+*    READ_BY_LINE                  = 'X'
+*    DAT_MODE                      = ' '
+*    CODEPAGE                      = ' '
+*    IGNORE_CERR                   = ABAP_TRUE
+*    REPLACEMENT                   = '#'
+*    CHECK_BOM                     = ' '
+*    VIRUS_SCAN_PROFILE            =
+*    NO_AUTH_CHECK                 = ' '
+*  IMPORTING
+*    FILELENGTH                    =
+*    HEADER                        =
+   tables
+     data_tab                      = it_file
+*  CHANGING
+*    ISSCANPERFORMED               = ' '
+  EXCEPTIONS
+    FILE_OPEN_ERROR               = 1
+    FILE_READ_ERROR               = 2
+    NO_BATCH                      = 3
+    GUI_REFUSE_FILETRANSFER       = 4
+    INVALID_TYPE                  = 5
+    NO_AUTHORITY                  = 6
+    UNKNOWN_ERROR                 = 7
+    BAD_DATA_FORMAT               = 8
+    HEADER_NOT_ALLOWED            = 9
+    SEPARATOR_NOT_ALLOWED         = 10
+    HEADER_TOO_LONG               = 11
+    UNKNOWN_DP_ERROR              = 12
+    ACCESS_DENIED                 = 13
+    DP_OUT_OF_MEMORY              = 14
+    DISK_FULL                     = 15
+    DP_TIMEOUT                    = 16
+    OTHERS                        = 17
+           .
+ IF sy-subrc <> 0.
+* Implement suitable error handling here
+ ENDIF.
+
+
+ LOOP AT it_file INTO wa_file.
+   WRITE : / wa_file-name,
+            wa_file-dept,
+            wa_file-emp_id.
+  ENDLOOP.
+LIST VIEW
+
+*&---------------------------------------------------------------------*
+*& Report ZGANGA_ALV_REPORT
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT ZGANGA_ALV_REPORT.
+
+
+DATA : it_makt TYPE STANDARD TABLE OF makt.
+DATA v_matnr TYPE makt-matnr.
+
+SELECT-OPTIONS s_matnr for v_matnr.
+START-OF-SELECTION.
+PERFORM get_data.
+END-OF-SELECTION.
+PERFORM display_data.
+*&---------------------------------------------------------------------*
+*& Form get_data
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*& -->  p1        text
+*& <--  p2        text
+*&---------------------------------------------------------------------*
+FORM get_data .
+
+  SELECT * FROM makt INTO TABLE it_makt WHERE matnr In s_matnr.
+
+ENDFORM.
+*&---------------------------------------------------------------------*
+*& Form display_data
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*& -->  p1        text
+*& <--  p2        text
+*&---------------------------------------------------------------------*
+FORM display_data .
+CALL FUNCTION 'REUSE_ALV_GRID_DISPLAY'
+ EXPORTING
+*   I_INTERFACE_CHECK                 = ' '
+*   I_BYPASSING_BUFFER                = ' '
+*   I_BUFFER_ACTIVE                   = ' '
+*   I_CALLBACK_PROGRAM                = ' '
+*   I_CALLBACK_PF_STATUS_SET          = ' '
+*   I_CALLBACK_USER_COMMAND           = ' '
+*   I_CALLBACK_TOP_OF_PAGE            = ' '
+*   I_CALLBACK_HTML_TOP_OF_PAGE       = ' '
+*   I_CALLBACK_HTML_END_OF_LIST       = ' '
+   I_STRUCTURE_NAME                  = 'MAKT'
+*   I_BACKGROUND_ID                   = ' '
+*   I_GRID_TITLE                      =
+*   I_GRID_SETTINGS                   =
+*   IS_LAYOUT                         =
+*   IT_FIELDCAT                       =
+*   IT_EXCLUDING                      =
+*   IT_SPECIAL_GROUPS                 =
+*   IT_SORT                           =
+*   IT_FILTER                         =
+*   IS_SEL_HIDE                       =
+*   I_DEFAULT                         = 'X'
+*   I_SAVE                            = ' '
+*   IS_VARIANT                        =
+*   IT_EVENTS                         =
+*   IT_EVENT_EXIT                     =
+*   IS_PRINT                          =
+*   IS_REPREP_ID                      =
+*   I_SCREEN_START_COLUMN             = 0
+*   I_SCREEN_START_LINE               = 0
+*   I_SCREEN_END_COLUMN               = 0
+*   I_SCREEN_END_LINE                 = 0
+*   I_HTML_HEIGHT_TOP                 = 0
+*   I_HTML_HEIGHT_END                 = 0
+*   IT_ALV_GRAPHICS                   =
+*   IT_HYPERLINK                      =
+*   IT_ADD_FIELDCAT                   =
+*   IT_EXCEPT_QINFO                   =
+*   IR_SALV_FULLSCREEN_ADAPTER        =
+*   O_PREVIOUS_SRAL_HANDLER           =
+* IMPORTING
+*   E_EXIT_CAUSED_BY_CALLER           =
+*   ES_EXIT_CAUSED_BY_USER            =
+  TABLES
+    t_outtab                          = it_makt
+* EXCEPTIONS
+*   PROGRAM_ERROR                     = 1
+*   OTHERS                            = 2
+          .
+IF sy-subrc <> 0.
+* Implement suitable error handling here
+ENDIF.
+
+ENDFORM.
+
+USING IT
+
+*&---------------------------------------------------------------------*
+*& Report ZGANGA_ALV_REPORT_IT
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT ZGANGA_ALV_REPORT_IT.
+
+
+DATA : it_makt TYPE STANDARD TABLE OF makt.
+DATA it_fcat TYPE SLIS_T_FIELDCAT_ALV.
+DATA v_matnr TYPE makt-matnr.
+
+SELECT-OPTIONS s_matnr for v_matnr.
+START-OF-SELECTION.
+PERFORM get_data.
+END-OF-SELECTION.
+PERFORM display_data.
+*&---------------------------------------------------------------------*
+*& Form get_data
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*& -->  p1        text
+*& <--  p2        text
+*&---------------------------------------------------------------------*
+FORM get_data .
+
+  SELECT * FROM makt INTO TABLE it_makt WHERE matnr In s_matnr.
+
+ENDFORM.
+*&---------------------------------------------------------------------*
+*& Form display_data
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*& -->  p1        text
+*& <--  p2        text
+*&---------------------------------------------------------------------*
+FORM display_data .
+  DATA lw_fcat LIKE LINE OF it_fcat.
+
+  lw_fcat-col_pos = 1.
+  lw_fcat-fieldname = 'MATNR'.
+  lw_fcat-tabname = 'IT_MAKT'.
+  lw_fcat-seltext_m = 'Material Number'.
+  lw_fcat-outputlen = 20.
+  APPEND lw_fcat TO it_fcat.
+
+   lw_fcat-col_pos = 2.
+  lw_fcat-fieldname = 'SPRAS'.
+  lw_fcat-tabname = 'IT_MAKT'.
+  lw_fcat-seltext_m = 'Language'.
+  lw_fcat-outputlen = 10.
+  APPEND lw_fcat TO it_fcat.
+
+   lw_fcat-col_pos = 3.
+  lw_fcat-fieldname = 'MAKTX'.
+  lw_fcat-tabname = 'IT_MAKT'.
+  lw_fcat-seltext_m = 'Material Description'.
+  lw_fcat-outputlen = 20.
+  APPEND lw_fcat TO it_fcat.
+CALL FUNCTION 'REUSE_ALV_GRID_DISPLAY'
+ EXPORTING
+*   I_INTERFACE_CHECK                 = ' '
+*   I_BYPASSING_BUFFER                = ' '
+*   I_BUFFER_ACTIVE                   = ' '
+   I_CALLBACK_PROGRAM                = 'ZGANGA_ALV_REPORT_IT'
+*   I_CALLBACK_PF_STATUS_SET          = ' '
+   I_CALLBACK_USER_COMMAND           = 'USER_COMMAND'
+*   I_CALLBACK_TOP_OF_PAGE            = ' '
+*   I_CALLBACK_HTML_TOP_OF_PAGE       = ' '
+*   I_CALLBACK_HTML_END_OF_LIST       = ' '
+*   I_STRUCTURE_NAME                  = 'MAKT'
+*   I_BACKGROUND_ID                   = ' '
+*   I_GRID_TITLE                      =
+*   I_GRID_SETTINGS                   =
+*   IS_LAYOUT                         =
+   IT_FIELDCAT                       = it_fcat
+*   IT_EXCLUDING                      =
+*   IT_SPECIAL_GROUPS                 =
+*   IT_SORT                           =
+*   IT_FILTER                         =
+*   IS_SEL_HIDE                       =
+*   I_DEFAULT                         = 'X'
+*   I_SAVE                            = ' '
+*   IS_VARIANT                        =
+*   IT_EVENTS                         =
+*   IT_EVENT_EXIT                     =
+*   IS_PRINT                          =
+*   IS_REPREP_ID                      =
+*   I_SCREEN_START_COLUMN             = 0
+*   I_SCREEN_START_LINE               = 0
+*   I_SCREEN_END_COLUMN               = 0
+*   I_SCREEN_END_LINE                 = 0
+*   I_HTML_HEIGHT_TOP                 = 0
+*   I_HTML_HEIGHT_END                 = 0
+*   IT_ALV_GRAPHICS                   =
+*   IT_HYPERLINK                      =
+*   IT_ADD_FIELDCAT                   =
+*   IT_EXCEPT_QINFO                   =
+*   IR_SALV_FULLSCREEN_ADAPTER        =
+*   O_PREVIOUS_SRAL_HANDLER           =
+* IMPORTING
+*   E_EXIT_CAUSED_BY_CALLER           =
+*   ES_EXIT_CAUSED_BY_USER            =
+  TABLES
+    t_outtab                          = it_makt
+* EXCEPTIONS
+*   PROGRAM_ERROR                     = 1
+*   OTHERS                            = 2
+          .
+IF sy-subrc <> 0.
+* Implement suitable error handling here
+ENDIF.
+
+ENDFORM.

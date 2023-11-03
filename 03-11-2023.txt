@@ -1,0 +1,251 @@
+*&---------------------------------------------------------------------*
+*& Report ZGANGA_ALV_REPORT
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT ZGANGA_ALV_REPORT.
+
+
+DATA : it_makt TYPE STANDARD TABLE OF makt.
+DATA v_matnr TYPE makt-matnr.
+DATA : ls_layout TYPE SLIS_LAYOUT_ALV.
+SELECT-OPTIONS s_matnr for v_matnr.
+START-OF-SELECTION.
+PERFORM get_data.
+END-OF-SELECTION.
+PERFORM layout.
+PERFORM display_data.
+*&---------------------------------------------------------------------*
+*& Form get_data
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*& -->  p1        text
+*& <--  p2        text
+*&---------------------------------------------------------------------*
+FORM get_data .
+
+  SELECT * FROM makt INTO TABLE it_makt WHERE matnr In s_matnr.
+
+ENDFORM.
+*&---------------------------------------------------------------------*
+*& Form display_data
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*& -->  p1        text
+*& <--  p2        text
+*&---------------------------------------------------------------------*
+FORM display_data .
+CALL FUNCTION 'REUSE_ALV_GRID_DISPLAY'
+ EXPORTING
+*   I_INTERFACE_CHECK                 = ' '
+*   I_BYPASSING_BUFFER                = ' '
+*   I_BUFFER_ACTIVE                   = ' '
+   I_CALLBACK_PROGRAM                = 'ZGANGA_ALV_REPORT'
+   I_CALLBACK_PF_STATUS_SET          = 'PF_STATUS'
+*   I_CALLBACK_USER_COMMAND           = ' '
+*   I_CALLBACK_TOP_OF_PAGE            = ' '
+*   I_CALLBACK_HTML_TOP_OF_PAGE       = ' '
+*   I_CALLBACK_HTML_END_OF_LIST       = ' '
+   I_STRUCTURE_NAME                  = 'MAKT'
+*   I_BACKGROUND_ID                   = ' '
+*   I_GRID_TITLE                      =
+*   I_GRID_SETTINGS                   =
+  IS_LAYOUT                         = ls_layout
+*   IT_FIELDCAT                       =
+*   IT_EXCLUDING                      =
+*   IT_SPECIAL_GROUPS                 =
+*   IT_SORT                           =
+*   IT_FILTER                         =
+*   IS_SEL_HIDE                       =
+*   I_DEFAULT                         = 'X'
+*   I_SAVE                            = ' '
+*   IS_VARIANT                        =
+*   IT_EVENTS                         =
+*   IT_EVENT_EXIT                     =
+*   IS_PRINT                          =
+*   IS_REPREP_ID                      =
+*   I_SCREEN_START_COLUMN             = 0
+*   I_SCREEN_START_LINE               = 0
+*   I_SCREEN_END_COLUMN               = 0
+*   I_SCREEN_END_LINE                 = 0
+*   I_HTML_HEIGHT_TOP                 = 0
+*   I_HTML_HEIGHT_END                 = 0
+*   IT_ALV_GRAPHICS                   =
+*   IT_HYPERLINK                      =
+*   IT_ADD_FIELDCAT                   =
+*   IT_EXCEPT_QINFO                   =
+*   IR_SALV_FULLSCREEN_ADAPTER        =
+*   O_PREVIOUS_SRAL_HANDLER           =
+* IMPORTING
+*   E_EXIT_CAUSED_BY_CALLER           =
+*   ES_EXIT_CAUSED_BY_USER            =
+  TABLES
+    t_outtab                          = it_makt
+* EXCEPTIONS
+*   PROGRAM_ERROR                     = 1
+*   OTHERS                            = 2
+          .
+IF sy-subrc <> 0.
+* Implement suitable error handling here
+ENDIF.
+
+ENDFORM.
+FORM PF_STATUS USING rt_extab TYPE slis_t_extab.
+  SET PF-STATUS 'FULL_ALV'.
+ ENDFORM.
+*&---------------------------------------------------------------------*
+*& Form layout
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*& -->  p1        text
+*& <--  p2        text
+*&---------------------------------------------------------------------*
+FORM layout .
+ls_layout-zebra = 'X'.
+ENDFORM.
+
+PROCEDURE
+*&---------------------------------------------------------------------*
+*& Report ZGANGA_PROCEDURE_PROGRAM
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT ZGANGA_PROCEDURE_PROGRAM.
+
+
+DATA : v_doc Type i.
+
+CALL FUNCTION 'ZGANGA_PROCEDURE_DEMO'
+ IMPORTING
+   NEXT_NUMBER       = v_doc
+          .
+
+CALL FUNCTION 'ZGANGA_PROCEDURE_DEMO'
+ IMPORTING
+   NEXT_NUMBER       = v_doc
+          .
+
+WRITE v_doc.
+
+OOPS
+
+*&---------------------------------------------------------------------*
+*& Report ZGANGA_OOPS
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT ZGANGA_OOPS.
+CLASS lcl_counter DEFINITION.
+  PUBLIC SECTION.
+  DATA v_count TYPE i.
+  METHODS next_num EXPORTING number TYPE i.
+ENDCLASS.
+
+CLASS lcl_counter IMPLEMENTATION.
+  METHOD next_num.
+    number = v_count + 1.
+    v_count = number.
+    ENDMETHOD.
+  ENDCLASS.
+
+  DATA v_data TYPE i.
+  DATA v_tag TYPE i.
+  DATA o_data TYPE REF TO lcl_counter.
+  DATA o_tag TYPE REF TO lcl_counter.
+START-OF-SELECTION.
+CREATE OBJECT o_data.
+CREATE OBJECT o_tag.
+
+o_data->next_num(
+   IMPORTING
+     number = v_data
+).
+
+o_tag->next_num(
+   IMPORTING
+     number = v_tag
+).
+  o_tag->next_num(
+   IMPORTING
+     number = v_tag
+).
+
+o_data->next_num(
+   IMPORTING
+     number = v_data
+).
+
+  o_tag->next_num(
+   IMPORTING
+     number = v_tag
+).
+
+o_data->next_num(
+   IMPORTING
+     number = v_data
+).
+Write v_data.
+write v_tag.
+
+GLOBAL CLASS
+*&---------------------------------------------------------------------*
+*& Report ZGANGA_OOPS
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT ZGANGA_OOPS.
+CLASS lcl_counter DEFINITION.
+  PUBLIC SECTION.
+  DATA v_count TYPE i.
+  METHODS next_number EXPORTING number TYPE i.
+ENDCLASS.
+
+CLASS lcl_counter IMPLEMENTATION.
+  METHOD next_number.
+    number = v_count + 1.
+    v_count = number.
+    ENDMETHOD.
+  ENDCLASS.
+
+  DATA v_data TYPE i.
+  DATA v_tag TYPE i.
+*  DATA o_data TYPE REF TO lcl_counter.
+  DATA o_data TYPE REF TO ZCL_GLOBAL_CLASS1.
+  DATA o_tag TYPE REF TO lcl_counter.
+START-OF-SELECTION.
+CREATE OBJECT o_data.
+CREATE OBJECT o_tag.
+
+o_data->next_number(
+   IMPORTING
+     number = v_data
+).
+
+o_tag->next_number(
+   IMPORTING
+     number = v_tag
+).
+  o_tag->next_number(
+   IMPORTING
+     number = v_tag
+).
+
+o_data->next_number(
+   IMPORTING
+     number = v_data
+).
+
+  o_tag->next_number(
+   IMPORTING
+     number = v_tag
+).
+
+o_data->next_number(
+   IMPORTING
+     number = v_data
+).
+Write v_data.
+write v_tag.
